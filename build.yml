@@ -1,0 +1,102 @@
+name: Build Project Management App
+
+on: [push]
+
+jobs:
+  # --- BUILD FOR MAC ---
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller  # Ensure pyinstaller is installed
+          
+      - name: Build Mac App
+        run: |
+          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Mac" \
+          --hidden-import=reportlab.graphics.barcode \
+          --hidden-import=reportlab.pdfbase._fontdata \
+          --hidden-import=matplotlib.backends.backend_tkagg \
+          --hidden-import=babel.numbers \
+          Project_Task.py
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacOS-App
+          path: dist/Project_Task_Mac
+
+  # --- BUILD FOR WINDOWS ---
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+          
+      - name: Build Windows EXE
+        run: |
+          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Manager" \
+          --hidden-import=reportlab.graphics.barcode \
+          --hidden-import=reportlab.pdfbase._fontdata \
+          --hidden-import=matplotlib.backends.backend_tkagg \
+          --hidden-import=babel.numbers \
+          Project_Task.py
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Exe
+          path: dist/Project_Task.exe
+
+  # --- BUILD FOR LINUX ---
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk libtk8.6 binutils
+
+      - name: Install Python Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build Linux Binary
+        run: |
+          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Linux" \
+          --hidden-import=reportlab.graphics.barcode \
+          --hidden-import=reportlab.pdfbase._fontdata \
+          --hidden-import=matplotlib.backends.backend_tkagg \
+          --hidden-import=babel.numbers \
+          Project_Task.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux-Binary
+          path: dist/Project_Task_Linux
