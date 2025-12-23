@@ -21,7 +21,7 @@ jobs:
           
       - name: Build Mac App
         run: |
-          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Mac" \
+          python -m PyInstaller --noconsole --onefile --name="Project_Task_Mac" \
           --hidden-import=reportlab.graphics.barcode \
           --hidden-import=reportlab.pdfbase._fontdata \
           --hidden-import=matplotlib.backends.backend_tkagg \
@@ -52,7 +52,7 @@ jobs:
           
       - name: Build Windows EXE
         run: |
-          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Manager" \
+          python -m PyInstaller --noconsole --onefile --name="Project_Task" \
           --hidden-import=reportlab.graphics.barcode \
           --hidden-import=reportlab.pdfbase._fontdata \
           --hidden-import=matplotlib.backends.backend_tkagg \
@@ -88,7 +88,7 @@ jobs:
 
       - name: Build Linux Binary
         run: |
-          python -m PyInstaller --noconsole --onefile --name="Darul_Ihsan_Linux" \
+          python -m PyInstaller --noconsole --onefile --name="Project_Task_Linux" \
           --hidden-import=reportlab.graphics.barcode \
           --hidden-import=reportlab.pdfbase._fontdata \
           --hidden-import=matplotlib.backends.backend_tkagg \
