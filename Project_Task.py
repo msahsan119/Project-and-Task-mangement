@@ -11,7 +11,7 @@ class ProjectTaskManager:
     def __init__(self, root):
         self.root = root
         self.root.title("Project & Task Management System")
-        self.root.geometry("1300x900")
+        self.root.geometry("1400x950")
         
         # Data storage
         self.projects = {}
@@ -178,9 +178,14 @@ class ProjectTaskManager:
         self.task_min_out = ttk.Spinbox(time_out_frame, from_=0, to=59, width=5, format="%02.0f")
         self.task_min_out.pack(side='left')
         
-        # Buttons
+        # NEW: Comments Section
+        ttk.Label(form_frame, text="Comments:").grid(row=8, column=0, sticky='nw', pady=5)
+        self.task_comments = tk.Text(form_frame, width=40, height=3)
+        self.task_comments.grid(row=8, column=1, pady=5, padx=10)
+        
+        # Buttons (Moved to row 9)
         btn_frame = ttk.Frame(form_frame)
-        btn_frame.grid(row=8, column=0, columnspan=2, pady=20)
+        btn_frame.grid(row=9, column=0, columnspan=2, pady=20)
         
         ttk.Button(btn_frame, text="Add Task", command=self.add_task).pack(side='left', padx=5)
         ttk.Button(btn_frame, text="Clear Form", command=self.clear_task_form).pack(side='left', padx=5)
@@ -206,7 +211,7 @@ class ProjectTaskManager:
         list_frame.pack(fill='both', expand=True, padx=20, pady=10)
         
         columns = ('Task', 'Priority', 'Mandatory', 'Start', 'End', 'Status')
-        self.edit_tree = ttk.Treeview(list_frame, columns=columns, show='tree headings', height=15)
+        self.edit_tree = ttk.Treeview(list_frame, columns=columns, show='tree headings', height=22)
         
         self.edit_tree.heading('#0', text='ID')
         self.edit_tree.column('#0', width=50)
@@ -260,7 +265,7 @@ class ProjectTaskManager:
         
         # Tasks Tree
         columns = ('Task', 'Priority', 'Mandatory', 'Start', 'End', 'Status')
-        self.progress_tree = ttk.Treeview(display_frame, columns=columns, show='tree headings', height=15)
+        self.progress_tree = ttk.Treeview(display_frame, columns=columns, show='tree headings', height=22)
         
         self.progress_tree.heading('#0', text='ID')
         self.progress_tree.column('#0', width=50)
@@ -382,6 +387,9 @@ class ProjectTaskManager:
         parent = self.task_parent.get()
         parent_id = None if parent.startswith('(None') else parent.split(' - ')[0]
         
+        # Get comment text
+        comment_text = self.task_comments.get("1.0", "end-1c").strip()
+        
         task_data = {
             'name': task_name,
             'parent': parent_id,
@@ -391,7 +399,8 @@ class ProjectTaskManager:
             'end_date': self.task_end_date.get_date().strftime('%Y-%m-%d'),
             'time_in': f"{self.task_hour_in.get()}:{self.task_min_in.get()}",
             'time_out': f"{self.task_hour_out.get()}:{self.task_min_out.get()}",
-            'status': 'Incomplete'
+            'status': 'Incomplete',
+            'comments': comment_text # Added comments
         }
         
         self.tasks[pid][tid] = task_data
@@ -408,6 +417,7 @@ class ProjectTaskManager:
         self.task_min_in.set('00')
         self.task_hour_out.set('17')
         self.task_min_out.set('00')
+        self.task_comments.delete("1.0", tk.END) # Clear comments
     
     # Edit Functions
     def update_edit_project_list(self):
@@ -477,7 +487,7 @@ class ProjectTaskManager:
         # Create edit window
         edit_win = tk.Toplevel(self.root)
         edit_win.title(f"Edit Task {tid}")
-        edit_win.geometry("500x600")
+        edit_win.geometry("600x750") # Increased height for comments
         
         frame = ttk.Frame(edit_win, padding=20)
         frame.pack(fill='both', expand=True)
@@ -537,6 +547,12 @@ class ProjectTaskManager:
         min_out_spin.set(min_out)
         min_out_spin.pack(side='left')
         
+        # NEW: Comments Section in Edit
+        ttk.Label(frame, text="Comments:").grid(row=7, column=0, sticky='nw', pady=5)
+        comment_text = tk.Text(frame, width=40, height=4)
+        comment_text.insert("1.0", task.get('comments', '')) # Load existing or empty
+        comment_text.grid(row=7, column=1, pady=5)
+        
         def save_changes():
             task['name'] = name_entry.get()
             task['priority'] = priority_combo.get()
@@ -545,13 +561,14 @@ class ProjectTaskManager:
             task['end_date'] = end_date.get_date().strftime('%Y-%m-%d')
             task['time_in'] = f"{hour_in_spin.get()}:{min_in_spin.get()}"
             task['time_out'] = f"{hour_out_spin.get()}:{min_out_spin.get()}"
+            task['comments'] = comment_text.get("1.0", "end-1c").strip() # Save comments
             
             self.save_data()
             self.on_project_select_edit(None)
             edit_win.destroy()
             messagebox.showinfo("Success", "Task updated successfully!")
         
-        ttk.Button(frame, text="Save Changes", command=save_changes).grid(row=7, column=0, columnspan=2, pady=20)
+        ttk.Button(frame, text="Save Changes", command=save_changes).grid(row=8, column=0, columnspan=2, pady=20)
     
     def mark_complete(self):
         selected = self.edit_tree.selection()
@@ -689,8 +706,9 @@ class ProjectTaskManager:
                 
                 # Write tasks
                 writer.writerow(['TASKS'])
+                # Added 'Comments' to header
                 writer.writerow(['Task_ID', 'Name', 'Parent', 'Priority', 'Mandatory', 
-                               'Start_Date', 'End_Date', 'Time_In', 'Time_Out', 'Status'])
+                               'Start_Date', 'End_Date', 'Time_In', 'Time_Out', 'Status', 'Comments'])
                 
                 for tid, task in tasks.items():
                     writer.writerow([
@@ -703,7 +721,8 @@ class ProjectTaskManager:
                         task['end_date'],
                         task['time_in'],
                         task['time_out'],
-                        task['status']
+                        task['status'],
+                        task.get('comments', '') # Added comments export
                     ])
             
             messagebox.showinfo("Success", f"Data exported to {filename}")
@@ -749,10 +768,15 @@ class ProjectTaskManager:
             self.tasks[pid] = {}
             
             for row in rows[task_start:]:
+                # Handle both old CSVs (10 cols) and new CSVs (11 cols with comments)
                 if len(row) < 10:
                     continue
                 
                 tid = row[0]
+                
+                # If comments column exists (index 10), use it, else empty string
+                comments_val = row[10] if len(row) > 10 else ''
+                
                 self.tasks[pid][tid] = {
                     'name': row[1],
                     'parent': row[2] if row[2] else None,
@@ -762,7 +786,8 @@ class ProjectTaskManager:
                     'end_date': row[6],
                     'time_in': row[7],
                     'time_out': row[8],
-                    'status': row[9]
+                    'status': row[9],
+                    'comments': comments_val
                 }
             
             self.save_data()
@@ -824,8 +849,14 @@ class ProjectTaskManager:
         date_frame = ttk.LabelFrame(top_frame, text="Today's Date", padding=20)
         date_frame.pack(side='left', padx=10, fill='both', expand=True)
         
+        # Messages
+        ttk.Label(date_frame, text="Bismillah Hir Rahmanir Rahim", 
+                 font=('Arial', 16, 'bold'), foreground='darkgreen').pack(pady=5)
+        ttk.Label(date_frame, text="Rabbi jidni Ilma.", 
+                 font=('Arial', 14, 'italic'), foreground='blue').pack(pady=2)
+        
         self.today_day_label = ttk.Label(date_frame, text="", font=('Arial', 16, 'bold'))
-        self.today_day_label.pack(pady=5)
+        self.today_day_label.pack(pady=10)
         
         self.today_date_label = ttk.Label(date_frame, text="", font=('Arial', 14))
         self.today_date_label.pack(pady=5)
@@ -846,7 +877,7 @@ class ProjectTaskManager:
         
         # Tasks tree
         columns = ('Project', 'Task', 'Priority', 'Mandatory', 'Time In', 'Time Out', 'Status')
-        self.today_tree = ttk.Treeview(tasks_frame, columns=columns, show='tree headings', height=12)
+        self.today_tree = ttk.Treeview(tasks_frame, columns=columns, show='tree headings', height=22)
         
         self.today_tree.heading('#0', text='ID')
         self.today_tree.column('#0', width=60)
@@ -1096,7 +1127,7 @@ class ProjectTaskManager:
         
         # Tasks tree
         columns = ('Project', 'Task', 'Priority', 'Mandatory', 'Start', 'End', 'Time In', 'Time Out', 'Status')
-        self.filter_tree = ttk.Treeview(results_frame, columns=columns, show='tree headings', height=15)
+        self.filter_tree = ttk.Treeview(results_frame, columns=columns, show='tree headings', height=25)
         
         self.filter_tree.heading('#0', text='ID')
         self.filter_tree.column('#0', width=50)
@@ -1251,13 +1282,26 @@ class ProjectTaskManager:
                 
                 # Write header
                 writer.writerow(['Task_ID', 'Project', 'Task', 'Priority', 'Mandatory', 
-                               'Start_Date', 'End_Date', 'Time_In', 'Time_Out', 'Status'])
+                               'Start_Date', 'End_Date', 'Time_In', 'Time_Out', 'Status', 'Comments'])
                 
                 # Write tasks
                 for item in self.filter_tree.get_children():
                     tid = self.filter_tree.item(item)['text']
                     values = self.filter_tree.item(item)['values']
-                    writer.writerow([tid] + list(values))
+                    # Lookup task details to get comments
+                    pid = None
+                    # Find project ID from value[0] which is project name
+                    p_name = values[0]
+                    for p_id, p in self.projects.items():
+                        if p['name'] == p_name:
+                            pid = p_id
+                            break
+                    
+                    comment_str = ""
+                    if pid and tid in self.tasks[pid]:
+                        comment_str = self.tasks[pid][tid].get('comments', '')
+
+                    writer.writerow([tid] + list(values) + [comment_str])
             
             messagebox.showinfo("Success", f"Filtered tasks exported to {filename}")
         except Exception as e:
