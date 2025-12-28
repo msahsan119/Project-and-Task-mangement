@@ -96,14 +96,11 @@ class ProjectTaskManager:
         
         # Treeview for projects
         columns = ('ID', 'Name', 'Type', 'Start', 'End')
-        self.project_tree = ttk.Treeview(list_frame, columns=columns, show='tree headings', height=10)
-        
-        self.project_tree.heading('#0', text='')
-        self.project_tree.column('#0', width=0, stretch=False)
+        self.project_tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=10)
         
         for col in columns:
             self.project_tree.heading(col, text=col)
-            self.project_tree.column(col, width=150)
+            self.project_tree.column(col, width=150, anchor='center')
         
         scrollbar = ttk.Scrollbar(list_frame, orient='vertical', command=self.project_tree.yview)
         self.project_tree.configure(yscrollcommand=scrollbar.set)
@@ -258,12 +255,15 @@ class ProjectTaskManager:
         columns = ('Task', 'Priority', 'Mandatory', 'Start', 'End', 'Status')
         self.edit_tree = ttk.Treeview(list_frame, columns=columns, show='tree headings', height=22)
         
-        self.edit_tree.heading('#0', text='ID')
-        self.edit_tree.column('#0', width=50)
+        self.edit_tree.heading('#0', text='Task ID')
+        self.edit_tree.column('#0', width=80, anchor='center')
+        
+        col_widths = {'Task': 200, 'Priority': 150, 'Mandatory': 80, 
+                     'Start': 100, 'End': 100, 'Status': 80}
         
         for col in columns:
             self.edit_tree.heading(col, text=col)
-            self.edit_tree.column(col, width=120)
+            self.edit_tree.column(col, width=col_widths.get(col, 120), anchor='center')
         
         scrollbar = ttk.Scrollbar(list_frame, orient='vertical', command=self.edit_tree.yview)
         self.edit_tree.configure(yscrollcommand=scrollbar.set)
@@ -312,12 +312,15 @@ class ProjectTaskManager:
         columns = ('Task', 'Priority', 'Mandatory', 'Start', 'End', 'Status')
         self.progress_tree = ttk.Treeview(display_frame, columns=columns, show='tree headings', height=22)
         
-        self.progress_tree.heading('#0', text='ID')
-        self.progress_tree.column('#0', width=50)
+        self.progress_tree.heading('#0', text='Task ID')
+        self.progress_tree.column('#0', width=80, anchor='center')
+        
+        col_widths = {'Task': 200, 'Priority': 150, 'Mandatory': 80, 
+                     'Start': 100, 'End': 100, 'Status': 80}
         
         for col in columns:
             self.progress_tree.heading(col, text=col)
-            self.progress_tree.column(col, width=120)
+            self.progress_tree.column(col, width=col_widths.get(col, 120), anchor='center')
         
         scrollbar = ttk.Scrollbar(display_frame, orient='vertical', command=self.progress_tree.yview)
         self.progress_tree.configure(yscrollcommand=scrollbar.set)
@@ -367,23 +370,28 @@ class ProjectTaskManager:
         ttk.Button(date_frame, text="Refresh Tasks", command=self.refresh_today_tasks).pack(pady=10)
         
         # Tasks display
-        tasks_frame = ttk.LabelFrame(tab, text="Tasks & Subtasks for Today", padding=20)
+        tasks_frame = ttk.LabelFrame(tab, text="Tasks & Subtasks for Today (Sorted by Importance)", padding=20)
         tasks_frame.pack(fill='both', expand=True, padx=20, pady=10)
         
         # Info label
         self.today_info_label = ttk.Label(tasks_frame, text="", font=('Arial', 11))
         self.today_info_label.pack(pady=5)
         
-        # Tasks tree
-        columns = ('Project', 'Task', 'Priority', 'Mandatory', 'Time In', 'Time Out', 'Status')
-        self.today_tree = ttk.Treeview(tasks_frame, columns=columns, show='tree headings', height=22)
+        # Tasks tree - simplified columns
+        columns = ('Project ID', 'Task/Subtask Name', 'Time', 'Importance')
+        self.today_tree = ttk.Treeview(tasks_frame, columns=columns, show='headings', height=22)
         
-        self.today_tree.heading('#0', text='ID')
-        self.today_tree.column('#0', width=60)
+        # Set column widths and center alignment
+        self.today_tree.column('Project ID', width=100, anchor='center')
+        self.today_tree.column('Task/Subtask Name', width=400, anchor='center')
+        self.today_tree.column('Time', width=150, anchor='center')
+        self.today_tree.column('Importance', width=200, anchor='center')
         
-        for col in columns:
-            self.today_tree.heading(col, text=col)
-            self.today_tree.column(col, width=100)
+        # Set headings
+        self.today_tree.heading('Project ID', text='Project ID')
+        self.today_tree.heading('Task/Subtask Name', text='Task/Subtask Name')
+        self.today_tree.heading('Time', text='Time')
+        self.today_tree.heading('Importance', text='Importance')
         
         scrollbar = ttk.Scrollbar(tasks_frame, orient='vertical', command=self.today_tree.yview)
         self.today_tree.configure(yscrollcommand=scrollbar.set)
@@ -424,11 +432,11 @@ class ProjectTaskManager:
         ttk.Label(filter_frame, text="Filter Type:", font=('Arial', 11)).grid(row=0, column=1, sticky='w', padx=20)
         
         self.filter_type = tk.StringVar(value="day")
-        ttk.Radiobutton(filter_frame, text="Single Day", variable=self.filter_type, 
+        ttk.Radiobutton(filter_frame, text="Single Day (Timeline)", variable=self.filter_type, 
                        value="day").grid(row=1, column=1, sticky='w', padx=20)
-        ttk.Radiobutton(filter_frame, text="Week", variable=self.filter_type, 
+        ttk.Radiobutton(filter_frame, text="Week (Date x Time Grid)", variable=self.filter_type, 
                        value="week").grid(row=2, column=1, sticky='w', padx=20)
-        ttk.Radiobutton(filter_frame, text="Month", variable=self.filter_type, 
+        ttk.Radiobutton(filter_frame, text="Month (Week x Day Grid)", variable=self.filter_type, 
                        value="month").grid(row=3, column=1, sticky='w', padx=20)
         
         # Apply button
@@ -441,36 +449,39 @@ class ProjectTaskManager:
         
         # Info label
         self.filter_info_label = ttk.Label(results_frame, text="Select a date and filter type", 
-                                          font=('Arial', 11))
+                                          font=('Arial', 11, 'bold'))
         self.filter_info_label.pack(pady=5)
         
-        # Tasks tree
-        columns = ('Project', 'Task', 'Priority', 'Mandatory', 'Start', 'End', 'Time In', 'Time Out', 'Status')
-        self.filter_tree = ttk.Treeview(results_frame, columns=columns, show='tree headings', height=25)
+        # Create a canvas with scrollbars for the view
+        canvas_frame = ttk.Frame(results_frame)
+        canvas_frame.pack(fill='both', expand=True)
         
-        self.filter_tree.heading('#0', text='ID')
-        self.filter_tree.column('#0', width=50)
+        self.calendar_canvas = tk.Canvas(canvas_frame, bg='white')
+        v_scrollbar = ttk.Scrollbar(canvas_frame, orient='vertical', command=self.calendar_canvas.yview)
+        h_scrollbar = ttk.Scrollbar(canvas_frame, orient='horizontal', command=self.calendar_canvas.xview)
+        self.calendar_canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
         
-        for col in columns:
-            self.filter_tree.heading(col, text=col)
-            self.filter_tree.column(col, width=100)
+        self.calendar_canvas.grid(row=0, column=0, sticky='nsew')
+        v_scrollbar.grid(row=0, column=1, sticky='ns')
+        h_scrollbar.grid(row=1, column=0, sticky='ew')
         
-        scrollbar = ttk.Scrollbar(results_frame, orient='vertical', command=self.filter_tree.yview)
-        self.filter_tree.configure(yscrollcommand=scrollbar.set)
-        
-        self.filter_tree.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
+        canvas_frame.grid_rowconfigure(0, weight=1)
+        canvas_frame.grid_columnconfigure(0, weight=1)
         
         # Action buttons
         btn_frame = ttk.Frame(results_frame)
         btn_frame.pack(pady=10)
         
         ttk.Button(btn_frame, text="Mark Complete", 
-                  command=self.mark_filter_complete).pack(side='left', padx=5)
+                  command=self.mark_filter_complete_timeline).pack(side='left', padx=5)
         ttk.Button(btn_frame, text="Mark Incomplete", 
-                  command=self.mark_filter_incomplete).pack(side='left', padx=5)
+                  command=self.mark_filter_incomplete_timeline).pack(side='left', padx=5)
         ttk.Button(btn_frame, text="Export Filtered to CSV", 
                   command=self.export_filtered_csv).pack(side='left', padx=5)
+        
+        # Store tasks for selection
+        self.calendar_tasks = []
+        self.selected_calendar_task = None
     
     # Project Management Functions
     def toggle_project_id(self):
@@ -895,6 +906,7 @@ class ProjectTaskManager:
         self.tasks[pid][tid]['status'] = 'Complete'
         self.save_data()
         self.on_project_select_edit(None)
+        self.refresh_all_tabs()
     
     def mark_incomplete(self):
         selected = self.edit_tree.selection()
@@ -907,6 +919,7 @@ class ProjectTaskManager:
         self.tasks[pid][tid]['status'] = 'Incomplete'
         self.save_data()
         self.on_project_select_edit(None)
+        self.refresh_all_tabs()
     
     def delete_task(self):
         selected = self.edit_tree.selection()
@@ -926,6 +939,7 @@ class ProjectTaskManager:
             
             self.save_data()
             self.on_project_select_edit(None)
+            self.refresh_all_tabs()
     
     # Progress Functions
     def update_progress_project_list(self):
@@ -1142,15 +1156,20 @@ class ProjectTaskManager:
             messagebox.showwarning("Warning", "Please select a task")
             return
         
-        tid = self.today_tree.item(selected[0])['text']
-        
-        for pid, tasks in self.tasks.items():
-            if tid in tasks:
-                tasks[tid]['status'] = 'Complete'
+        # Get tags which contain pid and tid
+        tags = self.today_tree.item(selected[0])['tags']
+        if len(tags) >= 3:  # priority_color, pid, tid
+            pid = tags[1]
+            tid = tags[2]
+            
+            if pid in self.tasks and tid in self.tasks[pid]:
+                self.tasks[pid][tid]['status'] = 'Complete'
                 self.save_data()
                 self.refresh_today_tasks()
-                messagebox.showinfo("Success", f"Task {tid} marked as complete!")
+                messagebox.showinfo("Success", f"Task marked as complete!")
                 return
+        
+        messagebox.showerror("Error", "Could not identify task")
     
     def mark_project_complete(self):
         selected = self.today_tree.selection()
@@ -1180,9 +1199,436 @@ class ProjectTaskManager:
     
     # Calendar Filter Functions
     def apply_calendar_filter(self):
-        """Apply calendar filter - show only subtasks if parent has subtasks, otherwise show task"""
-        for item in self.filter_tree.get_children():
-            self.filter_tree.delete(item)
+        """Apply calendar filter based on selected type"""
+        self.calendar_canvas.delete('all')
+        self.calendar_tasks = []
+        
+        selected_date = self.filter_calendar.get_date()
+        filter_type = self.filter_type.get()
+        
+        base_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+        
+        if filter_type == "day":
+            self.show_day_timeline(base_date)
+        elif filter_type == "week":
+            self.show_week_grid(base_date)
+        else:  # month
+            self.show_month_grid(base_date)
+    
+    def show_day_timeline(self, date):
+        """Show single day with timeline (rows=hours, task blocks)"""
+        range_text = date.strftime('%B %d, %Y')
+        tasks_to_display = self.get_tasks_for_date_range(date, date)
+        
+        # Draw timeline
+        left_margin = 100
+        col_width = 800
+        row_height = 40
+        top_margin = 40
+        
+        # Title
+        self.calendar_canvas.create_text(left_margin + col_width // 2, 20,
+                                         text=f"Timeline: {range_text}",
+                                         font=('Arial', 14, 'bold'))
+        
+        # Draw 24 hours
+        for hour in range(24):
+            y_pos = top_margin + hour * row_height
+            
+            # Hour label
+            hour_str = f"{hour:02d}:00"
+            self.calendar_canvas.create_text(50, y_pos + 20,
+                                            text=hour_str,
+                                            font=('Arial', 10, 'bold'))
+            
+            # Horizontal line
+            self.calendar_canvas.create_line(left_margin, y_pos,
+                                            left_margin + col_width, y_pos,
+                                            fill='lightgray')
+        
+        # Draw tasks
+        for task_data in tasks_to_display:
+            try:
+                time_in_parts = task_data['time_in'].split(':')
+                time_out_parts = task_data['time_out'].split(':')
+                
+                start_hour = int(time_in_parts[0])
+                end_hour = int(time_out_parts[0])
+                
+                y_start = top_margin + start_hour * row_height + 5
+                y_end = top_margin + end_hour * row_height + 35
+                
+                color = self.get_priority_color(task_data['importance'])
+                
+                # Draw task box
+                task_box = self.calendar_canvas.create_rectangle(
+                    left_margin + 10, y_start,
+                    left_margin + col_width - 10, y_end,
+                    fill=color, outline='black', width=2
+                )
+                
+                # Task text
+                task_text = f"[{task_data['project_id']}] {task_data['task_name']}"
+                if task_data['status'] == 'Complete':
+                    task_text += " ✓"
+                
+                text_y = (y_start + y_end) // 2
+                self.calendar_canvas.create_text(
+                    left_margin + col_width // 2, text_y,
+                    text=task_text,
+                    font=('Arial', 9),
+                    width=col_width - 30
+                )
+                
+                self.calendar_tasks.append({
+                    'box': task_box,
+                    'pid': task_data['pid'],
+                    'tid': task_data['tid']
+                })
+            except (ValueError, IndexError):
+                continue
+        
+        self.calendar_canvas.configure(scrollregion=(0, 0, left_margin + col_width + 50,
+                                                     top_margin + 24 * row_height + 50))
+        self.calendar_canvas.bind('<Button-1>', self.on_calendar_click)
+        
+        self.update_filter_info(range_text, tasks_to_display)
+    
+    def show_week_grid(self, date):
+        """Show week grid (columns=dates, rows=hours)"""
+        # Get week start (Monday)
+        start_date = date - timedelta(days=date.weekday())
+        dates = [start_date + timedelta(days=i) for i in range(7)]
+        
+        range_text = f"Week: {start_date.strftime('%b %d')} - {dates[-1].strftime('%b %d, %Y')}"
+        
+        # Grid parameters
+        left_margin = 80
+        top_margin = 60
+        col_width = 150
+        row_height = 30
+        
+        # Title
+        self.calendar_canvas.create_text(left_margin + 3.5 * col_width, 20,
+                                         text=range_text,
+                                         font=('Arial', 14, 'bold'))
+        
+        # Column headers (dates)
+        for i, day_date in enumerate(dates):
+            x_pos = left_margin + i * col_width
+            day_str = day_date.strftime('%a\n%m/%d')
+            self.calendar_canvas.create_text(x_pos + col_width // 2, top_margin - 20,
+                                            text=day_str,
+                                            font=('Arial', 9, 'bold'))
+            
+            # Vertical line
+            self.calendar_canvas.create_line(x_pos, top_margin,
+                                            x_pos, top_margin + 24 * row_height,
+                                            fill='gray')
+        
+        # Right border
+        self.calendar_canvas.create_line(left_margin + 7 * col_width, top_margin,
+                                        left_margin + 7 * col_width, top_margin + 24 * row_height,
+                                        fill='gray')
+        
+        # Row headers (hours) and horizontal lines
+        for hour in range(24):
+            y_pos = top_margin + hour * row_height
+            
+            hour_str = f"{hour:02d}:00"
+            self.calendar_canvas.create_text(40, y_pos + 15,
+                                            text=hour_str,
+                                            font=('Arial', 8))
+            
+            self.calendar_canvas.create_line(left_margin, y_pos,
+                                            left_margin + 7 * col_width, y_pos,
+                                            fill='lightgray')
+        
+        # Bottom border
+        self.calendar_canvas.create_line(left_margin, top_margin + 24 * row_height,
+                                        left_margin + 7 * col_width, top_margin + 24 * row_height,
+                                        fill='gray')
+        
+        # Get and place tasks
+        tasks_to_display = self.get_tasks_for_date_range(dates[0], dates[-1])
+        
+        for task_data in tasks_to_display:
+            task_date = datetime.strptime(task_data['start_date'], '%Y-%m-%d').date()
+            
+            # Find which column (day)
+            if task_date < dates[0] or task_date > dates[-1]:
+                continue
+            
+            day_index = (task_date - dates[0]).days
+            
+            try:
+                time_in_parts = task_data['time_in'].split(':')
+                time_out_parts = task_data['time_out'].split(':')
+                
+                start_hour = int(time_in_parts[0])
+                end_hour = int(time_out_parts[0])
+                
+                x_start = left_margin + day_index * col_width + 2
+                y_start = top_margin + start_hour * row_height + 2
+                x_end = x_start + col_width - 4
+                y_end = top_margin + end_hour * row_height + row_height - 2
+                
+                color = self.get_priority_color(task_data['importance'])
+                
+                task_box = self.calendar_canvas.create_rectangle(
+                    x_start, y_start, x_end, y_end,
+                    fill=color, outline='black', width=1
+                )
+                
+                # Abbreviated task name
+                task_name = task_data['task_name'][:20]
+                if len(task_data['task_name']) > 20:
+                    task_name += '...'
+                
+                if task_data['status'] == 'Complete':
+                    task_name += " ✓"
+                
+                self.calendar_canvas.create_text(
+                    (x_start + x_end) // 2,
+                    (y_start + y_end) // 2,
+                    text=task_name,
+                    font=('Arial', 7),
+                    width=col_width - 10
+                )
+                
+                self.calendar_tasks.append({
+                    'box': task_box,
+                    'pid': task_data['pid'],
+                    'tid': task_data['tid']
+                })
+            except (ValueError, IndexError):
+                continue
+        
+        self.calendar_canvas.configure(scrollregion=(0, 0,
+                                                     left_margin + 7 * col_width + 50,
+                                                     top_margin + 24 * row_height + 50))
+        self.calendar_canvas.bind('<Button-1>', self.on_calendar_click)
+        
+        self.update_filter_info(range_text, tasks_to_display)
+    
+    def show_month_grid(self, date):
+        """Show month grid (rows=weeks 1-4, columns=days Mon-Sun)"""
+        # Get first and last day of month
+        first_day = date.replace(day=1)
+        if date.month == 12:
+            last_day = date.replace(day=31)
+        else:
+            last_day = (date.replace(month=date.month + 1, day=1) - timedelta(days=1))
+        
+        range_text = date.strftime('%B %Y')
+        
+        # Grid parameters
+        left_margin = 100
+        top_margin = 80
+        col_width = 140
+        row_height = 100
+        
+        # Title
+        self.calendar_canvas.create_text(left_margin + 3.5 * col_width, 20,
+                                         text=range_text,
+                                         font=('Arial', 16, 'bold'))
+        
+        # Day headers
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        for i, day_name in enumerate(days):
+            x_pos = left_margin + i * col_width
+            self.calendar_canvas.create_text(x_pos + col_width // 2, top_margin - 20,
+                                            text=day_name,
+                                            font=('Arial', 10, 'bold'))
+        
+        # Week labels and grid
+        week_starts = []
+        current = first_day - timedelta(days=first_day.weekday())  # Start from Monday
+        while current <= last_day:
+            week_starts.append(current)
+            current += timedelta(days=7)
+        
+        for week_idx, week_start in enumerate(week_starts[:4]):  # Max 4 weeks displayed
+            y_pos = top_margin + week_idx * row_height
+            
+            # Week label
+            self.calendar_canvas.create_text(40, y_pos + row_height // 2,
+                                            text=f"Week\n{week_idx + 1}",
+                                            font=('Arial', 9, 'bold'))
+            
+            # Draw cells for this week
+            for day_idx in range(7):
+                cell_date = week_start + timedelta(days=day_idx)
+                x_pos = left_margin + day_idx * col_width
+                
+                # Cell border
+                self.calendar_canvas.create_rectangle(
+                    x_pos, y_pos,
+                    x_pos + col_width, y_pos + row_height,
+                    outline='gray'
+                )
+                
+                # Date number
+                date_color = 'black' if first_day <= cell_date <= last_day else 'lightgray'
+                self.calendar_canvas.create_text(
+                    x_pos + 10, y_pos + 10,
+                    text=cell_date.day,
+                    font=('Arial', 8),
+                    fill=date_color,
+                    anchor='nw'
+                )
+                
+                # Get tasks for this day
+                day_tasks = [t for t in self.get_tasks_for_date_range(cell_date, cell_date)
+                           if first_day <= cell_date <= last_day]
+                
+                # Display tasks (name + color)
+                y_offset = 25
+                for task_data in day_tasks[:3]:  # Max 3 tasks per cell
+                    color = self.get_priority_color(task_data['importance'])
+                    
+                    # Task indicator box
+                    task_box = self.calendar_canvas.create_rectangle(
+                        x_pos + 5, y_pos + y_offset,
+                        x_pos + col_width - 5, y_pos + y_offset + 20,
+                        fill=color, outline='black', width=1
+                    )
+                    
+                    # Task name (abbreviated)
+                    task_name = task_data['task_name'][:15]
+                    if len(task_data['task_name']) > 15:
+                        task_name += '...'
+                    
+                    if task_data['status'] == 'Complete':
+                        task_name += " ✓"
+                    
+                    self.calendar_canvas.create_text(
+                        x_pos + col_width // 2, y_pos + y_offset + 10,
+                        text=task_name,
+                        font=('Arial', 7),
+                        width=col_width - 15
+                    )
+                    
+                    self.calendar_tasks.append({
+                        'box': task_box,
+                        'pid': task_data['pid'],
+                        'tid': task_data['tid']
+                    })
+                    
+                    y_offset += 22
+                
+                # Show "+X more" if more tasks
+                if len(day_tasks) > 3:
+                    self.calendar_canvas.create_text(
+                        x_pos + col_width // 2, y_pos + y_offset,
+                        text=f"+{len(day_tasks) - 3} more",
+                        font=('Arial', 7, 'italic'),
+                        fill='blue'
+                    )
+        
+        self.calendar_canvas.configure(scrollregion=(0, 0,
+                                                     left_margin + 7 * col_width + 50,
+                                                     top_margin + 4 * row_height + 50))
+        self.calendar_canvas.bind('<Button-1>', self.on_calendar_click)
+        
+        tasks_to_display = self.get_tasks_for_date_range(first_day, last_day)
+        self.update_filter_info(range_text, tasks_to_display)
+    
+    def get_tasks_for_date_range(self, start_date, end_date):
+        """Get tasks within date range (only subtasks or standalone tasks)"""
+        tasks_to_display = []
+        
+        for pid, project in self.projects.items():
+            tasks = self.tasks.get(pid, {})
+            
+            for tid, task in tasks.items():
+                task_start = datetime.strptime(task['start_date'], '%Y-%m-%d').date()
+                task_end = datetime.strptime(task['end_date'], '%Y-%m-%d').date()
+                
+                if task_start <= end_date and task_end >= start_date:
+                    # Skip parent tasks with subtasks
+                    if self.has_subtasks(pid, tid):
+                        continue
+                    
+                    parent_id = task.get('parent')
+                    if parent_id and parent_id in tasks:
+                        task_name = f"{task['name']} (subtask)"
+                    else:
+                        task_name = task['name']
+                    
+                    tasks_to_display.append({
+                        'pid': pid,
+                        'tid': tid,
+                        'project_id': project['id'],
+                        'task_name': task_name,
+                        'time_in': task['time_in'],
+                        'time_out': task['time_out'],
+                        'importance': task['priority'],
+                        'start_date': task['start_date'],
+                        'end_date': task['end_date'],
+                        'status': task['status']
+                    })
+        
+        return tasks_to_display
+    
+    def update_filter_info(self, range_text, tasks):
+        """Update info label with statistics"""
+        total = len(tasks)
+        completed = sum(1 for t in tasks if t['status'] == 'Complete')
+        
+        if total > 0:
+            percentage = (completed / total * 100)
+            self.filter_info_label.config(
+                text=f"{range_text} | Total: {total} | Completed: {completed} | Remaining: {total - completed} | Progress: {percentage:.1f}%"
+            )
+        else:
+            self.filter_info_label.config(text=f"{range_text} | No tasks found in this period")
+    
+    def on_calendar_click(self, event):
+        """Handle click on calendar"""
+        x, y = event.x, event.y
+        x = self.calendar_canvas.canvasx(x)
+        y = self.calendar_canvas.canvasy(y)
+        
+        clicked_item = self.calendar_canvas.find_closest(x, y)[0]
+        
+        # Highlight selected task
+        for task_data in self.calendar_tasks:
+            if task_data['box'] == clicked_item:
+                self.calendar_canvas.itemconfig(clicked_item, width=3, outline='blue')
+                self.selected_calendar_task = task_data
+            else:
+                self.calendar_canvas.itemconfig(task_data['box'], width=1, outline='black')
+    
+    def mark_filter_complete_timeline(self):
+        """Mark selected task as complete"""
+        if not self.selected_calendar_task:
+            messagebox.showwarning("Warning", "Please click on a task to select it")
+            return
+        
+        pid = self.selected_calendar_task['pid']
+        tid = self.selected_calendar_task['tid']
+        
+        if pid in self.tasks and tid in self.tasks[pid]:
+            self.tasks[pid][tid]['status'] = 'Complete'
+            self.save_data()
+            self.apply_calendar_filter()
+            messagebox.showinfo("Success", "Task marked as complete!")
+    
+    def mark_filter_incomplete_timeline(self):
+        """Mark selected task as incomplete"""
+        if not self.selected_calendar_task:
+            messagebox.showwarning("Warning", "Please click on a task to select it")
+            return
+        
+        pid = self.selected_calendar_task['pid']
+        tid = self.selected_calendar_task['tid']
+        
+        if pid in self.tasks and tid in self.tasks[pid]:
+            self.tasks[pid][tid]['status'] = 'Incomplete'
+            self.save_data()
+            self.apply_calendar_filter()
+            messagebox.showinfo("Success", "Task marked as incomplete!")
         
         selected_date = self.filter_calendar.get_date()
         filter_type = self.filter_type.get()
@@ -1207,6 +1653,7 @@ class ProjectTaskManager:
         
         total_tasks = 0
         completed_tasks = 0
+        tasks_to_display = []
         
         for pid, project in self.projects.items():
             tasks = self.tasks.get(pid, {})
@@ -1218,54 +1665,31 @@ class ProjectTaskManager:
                 if (task_start <= end_date and task_end >= start_date):
                     # Check if this task has subtasks
                     if self.has_subtasks(pid, tid):
-                        # Don't show parent task, subtasks will be shown separately
                         continue
                     
-                    # Check if this is a subtask
+                    total_tasks += 1
+                    if task['status'] == 'Complete':
+                        completed_tasks += 1
+                    
                     parent_id = task.get('parent')
-                    if parent_id:
-                        # This is a subtask, show it
-                        total_tasks += 1
-                        if task['status'] == 'Complete':
-                            completed_tasks += 1
-                        
-                        priority_color = self.get_priority_color(task['priority'])
-                        parent_task_name = tasks[parent_id]['name'] if parent_id in tasks else "Unknown"
-                        
-                        item = self.filter_tree.insert('', 'end', text=tid, values=(
-                            project['name'],
-                            f"{task['name']} (subtask of {parent_task_name})",
-                            task['priority'],
-                            'Yes' if task['mandatory'] else 'No',
-                            task['start_date'],
-                            task['end_date'],
-                            task['time_in'],
-                            task['time_out'],
-                            task['status']
-                        ), tags=(priority_color,))
-                        
-                        self.filter_tree.tag_configure(priority_color, background=priority_color)
+                    if parent_id and parent_id in tasks:
+                        task_name = f"[{project['id']}] {task['name']} (subtask)"
                     else:
-                        # This is a standalone task without subtasks
-                        total_tasks += 1
-                        if task['status'] == 'Complete':
-                            completed_tasks += 1
-                        
-                        priority_color = self.get_priority_color(task['priority'])
-                        
-                        item = self.filter_tree.insert('', 'end', text=tid, values=(
-                            project['name'],
-                            task['name'],
-                            task['priority'],
-                            'Yes' if task['mandatory'] else 'No',
-                            task['start_date'],
-                            task['end_date'],
-                            task['time_in'],
-                            task['time_out'],
-                            task['status']
-                        ), tags=(priority_color,))
-                        
-                        self.filter_tree.tag_configure(priority_color, background=priority_color)
+                        task_name = f"[{project['id']}] {task['name']}"
+                    
+                    tasks_to_display.append({
+                        'pid': pid,
+                        'tid': tid,
+                        'task_name': task_name,
+                        'time_in': task['time_in'],
+                        'time_out': task['time_out'],
+                        'importance': task['priority'],
+                        'end_date': task['end_date'],
+                        'status': task['status']
+                    })
+        
+        # Draw timeline
+        self.draw_timeline(tasks_to_display, range_text)
         
         if total_tasks > 0:
             percentage = (completed_tasks / total_tasks * 100)
@@ -1275,41 +1699,146 @@ class ProjectTaskManager:
         else:
             self.filter_info_label.config(text=f"{range_text} | No tasks found in this period")
     
-    def mark_filter_complete(self):
-        selected = self.filter_tree.selection()
-        if not selected:
-            messagebox.showwarning("Warning", "Please select a task")
-            return
+    def draw_timeline(self, tasks, range_text):
+        """Draw hourly timeline with tasks"""
+        # Canvas dimensions
+        canvas_width = self.timeline_canvas.winfo_width() if self.timeline_canvas.winfo_width() > 1 else 1000
+        left_margin = 100
+        right_margin = 50
+        top_margin = 40
+        row_height = 40
         
-        tid = self.filter_tree.item(selected[0])['text']
+        # Draw title
+        self.timeline_canvas.create_text(canvas_width // 2, 20, 
+                                         text=f"Timeline: {range_text}",
+                                         font=('Arial', 14, 'bold'))
         
-        for pid, tasks in self.tasks.items():
-            if tid in tasks:
-                tasks[tid]['status'] = 'Complete'
-                self.save_data()
-                self.apply_calendar_filter()
-                messagebox.showinfo("Success", f"Task {tid} marked as complete!")
-                return
+        # Draw 24-hour timeline (left side)
+        for hour in range(24):
+            y_pos = top_margin + hour * row_height
+            
+            # Hour label
+            hour_str = f"{hour:02d}:00"
+            self.timeline_canvas.create_text(50, y_pos + 20, 
+                                            text=hour_str,
+                                            font=('Arial', 10, 'bold'))
+            
+            # Horizontal line
+            self.timeline_canvas.create_line(left_margin, y_pos, 
+                                            canvas_width - right_margin, y_pos,
+                                            fill='lightgray')
+        
+        # Draw tasks on timeline
+        task_x = left_margin + 10
+        task_width = canvas_width - left_margin - right_margin - 20
+        
+        for task_data in tasks:
+            try:
+                # Parse time
+                time_in_parts = task_data['time_in'].split(':')
+                time_out_parts = task_data['time_out'].split(':')
+                
+                start_hour = int(time_in_parts[0])
+                end_hour = int(time_out_parts[0])
+                
+                # Calculate position
+                y_start = top_margin + start_hour * row_height + 5
+                y_end = top_margin + end_hour * row_height + 35
+                
+                # Get color based on importance
+                color = self.get_priority_color(task_data['importance'])
+                
+                # Draw task box
+                task_box = self.timeline_canvas.create_rectangle(
+                    task_x, y_start, task_x + task_width, y_end,
+                    fill=color, outline='black', width=2
+                )
+                
+                # Draw task text
+                task_text = f"{task_data['task_name']}\nDeadline: {task_data['end_date']}"
+                if task_data['status'] == 'Complete':
+                    task_text += " ✓"
+                
+                text_y = (y_start + y_end) // 2
+                self.timeline_canvas.create_text(
+                    task_x + task_width // 2, text_y,
+                    text=task_text,
+                    font=('Arial', 9),
+                    width=task_width - 10
+                )
+                
+                # Store task data for selection
+                self.timeline_tasks.append({
+                    'box': task_box,
+                    'pid': task_data['pid'],
+                    'tid': task_data['tid']
+                })
+                
+            except (ValueError, IndexError):
+                # Skip tasks with invalid time format
+                continue
+        
+        # Update scroll region
+        self.timeline_canvas.configure(scrollregion=(0, 0, canvas_width, top_margin + 24 * row_height + 50))
+        
+        # Bind click event
+        self.timeline_canvas.bind('<Button-1>', self.on_timeline_click)
+        
+        self.selected_timeline_task = None
     
-    def mark_filter_incomplete(self):
-        selected = self.filter_tree.selection()
-        if not selected:
-            messagebox.showwarning("Warning", "Please select a task")
+    def on_timeline_click(self, event):
+        """Handle click on timeline"""
+        x, y = event.x, event.y
+        # Convert to canvas coordinates
+        x = self.timeline_canvas.canvasx(x)
+        y = self.timeline_canvas.canvasy(y)
+        
+        # Find clicked task
+        clicked_item = self.timeline_canvas.find_closest(x, y)[0]
+        
+        # Highlight selected task
+        for task_data in self.timeline_tasks:
+            if task_data['box'] == clicked_item:
+                # Highlight this task
+                self.timeline_canvas.itemconfig(clicked_item, width=4, outline='blue')
+                self.selected_timeline_task = task_data
+            else:
+                # Reset other tasks
+                self.timeline_canvas.itemconfig(task_data['box'], width=2, outline='black')
+    
+    def mark_filter_complete_timeline(self):
+        """Mark selected task as complete from timeline"""
+        if not self.selected_timeline_task:
+            messagebox.showwarning("Warning", "Please click on a task to select it")
             return
         
-        tid = self.filter_tree.item(selected[0])['text']
+        pid = self.selected_timeline_task['pid']
+        tid = self.selected_timeline_task['tid']
         
-        for pid, tasks in self.tasks.items():
-            if tid in tasks:
-                tasks[tid]['status'] = 'Incomplete'
-                self.save_data()
-                self.apply_calendar_filter()
-                messagebox.showinfo("Success", f"Task {tid} marked as incomplete!")
-                return
+        if pid in self.tasks and tid in self.tasks[pid]:
+            self.tasks[pid][tid]['status'] = 'Complete'
+            self.save_data()
+            self.apply_calendar_filter()
+            messagebox.showinfo("Success", "Task marked as complete!")
+    
+    def mark_filter_incomplete_timeline(self):
+        """Mark selected task as incomplete from timeline"""
+        if not self.selected_timeline_task:
+            messagebox.showwarning("Warning", "Please click on a task to select it")
+            return
+        
+        pid = self.selected_timeline_task['pid']
+        tid = self.selected_timeline_task['tid']
+        
+        if pid in self.tasks and tid in self.tasks[pid]:
+            self.tasks[pid][tid]['status'] = 'Incomplete'
+            self.save_data()
+            self.apply_calendar_filter()
+            messagebox.showinfo("Success", "Task marked as incomplete!")
     
     def export_filtered_csv(self):
-        if not self.filter_tree.get_children():
-            messagebox.showwarning("Warning", "No tasks to export")
+        if not self.calendar_tasks:
+            messagebox.showwarning("Warning", "No tasks to export. Please apply a filter first.")
             return
         
         filename = filedialog.asksaveasfilename(
@@ -1325,25 +1854,28 @@ class ProjectTaskManager:
             with open(filename, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 
-                writer.writerow(['Task_ID', 'Project', 'Task', 'Priority', 'Mandatory', 
-                               'Start_Date', 'End_Date', 'Time_In', 'Time_Out', 'Status', 'Comments'])
+                writer.writerow(['Project_ID', 'Task_Name', 'Time_In', 'Time_Out', 
+                               'Importance', 'Start_Date', 'End_Date', 'Status', 'Comments'])
                 
-                for item in self.filter_tree.get_children():
-                    tid = self.filter_tree.item(item)['text']
-                    values = self.filter_tree.item(item)['values']
+                for task_data in self.calendar_tasks:
+                    pid = task_data['pid']
+                    tid = task_data['tid']
                     
-                    p_name = values[0]
-                    pid = None
-                    for p_id, p in self.projects.items():
-                        if p['name'] == p_name:
-                            pid = p_id
-                            break
-                    
-                    comment_str = ""
-                    if pid and tid in self.tasks[pid]:
-                        comment_str = self.tasks[pid][tid].get('comments', '')
-
-                    writer.writerow([tid] + list(values) + [comment_str])
+                    if pid in self.tasks and tid in self.tasks[pid]:
+                        task = self.tasks[pid][tid]
+                        project = self.projects[pid]
+                        
+                        writer.writerow([
+                            project['id'],
+                            task['name'],
+                            task['time_in'],
+                            task['time_out'],
+                            task['priority'],
+                            task['start_date'],
+                            task['end_date'],
+                            task['status'],
+                            task.get('comments', '')
+                        ])
             
             messagebox.showinfo("Success", f"Filtered tasks exported to {filename}")
         except Exception as e:
