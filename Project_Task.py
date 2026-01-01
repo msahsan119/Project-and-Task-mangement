@@ -100,7 +100,7 @@ class ProjectTaskManager:
         
         for col in columns:
             self.project_tree.heading(col, text=col)
-            self.project_tree.column(col, width=150, anchor='center')
+            self.project_tree.column(col, width=150,)
         
         scrollbar = ttk.Scrollbar(list_frame, orient='vertical', command=self.project_tree.yview)
         self.project_tree.configure(yscrollcommand=scrollbar.set)
@@ -383,7 +383,7 @@ class ProjectTaskManager:
         
         # Set column widths and center alignment
         self.today_tree.column('Project ID', width=100, anchor='center')
-        self.today_tree.column('Task/Subtask Name', width=400, anchor='center')
+        self.today_tree.column('Task/Subtask Name', width=400, )
         self.today_tree.column('Time', width=150, anchor='center')
         self.today_tree.column('Importance', width=200, anchor='center')
         
